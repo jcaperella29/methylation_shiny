@@ -1,0 +1,39 @@
+Bootstrap: docker
+From: rocker/r-ver:4.3.1
+
+%labels
+    Author You
+    Version 1.0
+
+%environment
+    export SHINY_PORT=3838
+    export SHINY_HOST=0.0.0.0
+
+%post
+    apt-get update && apt-get install -y \
+        libcurl4-openssl-dev libssl-dev libxml2-dev \
+        libudunits2-dev libgdal-dev libglpk-dev libxt-dev \
+        pandoc r-base-core
+
+    ln -s /usr/local/bin/Rscript /usr/bin/Rscript || echo "Rscript already symlinked"
+
+    R -e "install.packages('remotes', repos='https://cloud.r-project.org')"
+    R -e "remotes::install_version('shiny', version='1.8.0', repos='https://cloud.r-project.org')"
+    R -e "install.packages(c('plotly', 'DT', 'randomForest', 'pROC', 'caret', 'uwot', 'pwr', 'reshape2', 'dplyr', 'ggplot2', 'tibble', 'tidyr', 'pheatmap', 'enrichR'), repos='https://cloud.r-project.org')"
+    R -e "if (!requireNamespace('BiocManager', quietly = TRUE)) install.packages('BiocManager', repos='https://cloud.r-project.org'); BiocManager::install('IlluminaHumanMethylation450kanno.ilmn12.hg19', ask=FALSE)"
+
+
+%files
+    app.R /app/app.R
+    start.R /app/start.R
+    www /app/www
+    README.txt /app/README.txt
+
+%runscript
+echo "Launching DNA Methylation Shiny App..."
+exec Rscript /app/start.R
+
+%files
+    app.R /app/app.R
+    www /app/www
+    README.txt /app/README.txt
