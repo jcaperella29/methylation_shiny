@@ -1,0 +1,145 @@
+/* Hogwarts-inspired CSS for methylation app */
+
+body {
+  background-color: #1e1b16;  /* dark magic stone base */
+  color: #f5f0e6;             /* aged parchment text */
+  font-family: 'Georgia', serif;
+}
+
+h1, h2, h3, h4 {
+  color: #f1c40f;  /* golden glow */
+}
+
+.navbar, .navbar-default {
+  background-color: #2c2a25;  /* deep stone */
+  border-color: #f1c40f;
+}
+
+.navbar-default .navbar-nav > .active > a {
+  background-color: #f39c12 !important;
+  color: #000 !important;
+}
+
+.well {
+  background-color: #2f2c29;
+  border: 1px solid #f1c40f;
+}
+
+.btn, .action-button {
+  background-color: #6c5b3e;
+  color: #fff;
+  border: none;
+  font-weight: bold;
+}
+
+.btn:hover, .action-button:hover {
+  background-color: #f39c12;
+  color: #1e1b16;
+}
+
+select, input[type="text"], input[type="file"] {
+  background-color: #3a352f;
+  color: #f5f0e6;
+  border: 1px solid #f1c40f;
+}
+
+.table {
+  background-color: #2f2c29;
+  color: #f5f0e6;
+}
+
+#readme_text {
+  white-space: pre-wrap;
+  background-color: #2f2c29;
+  border: 1px solid #f1c40f;
+  padding: 15px;
+  margin-top: 10px;
+  border-radius: 5px;
+}
+
+/* === Fix DataTables cell visibility === */
+
+table.dataTable tbody td {
+  background-color: #f1c40f !important;  /* gold background */
+  color: #1e1b16 !important;             /* dark text */
+}
+
+table.dataTable thead th {
+  background-color: #f39c12 !important;  /* slightly deeper gold */
+  color: #000000 !important;
+  font-weight: bold;
+}
+
+.dataTables_wrapper .dataTables_paginate .paginate_button {
+  background-color: #f1c40f;
+  color: #1e1b16 !important;
+  border: none;
+  margin: 2px;
+  padding: 4px 8px;
+  border-radius: 3px;
+}
+
+.dataTables_wrapper .dataTables_paginate .paginate_button.current {
+  background-color: #f39c12 !important;
+  color: #000 !important;
+}
+
+.dataTables_wrapper .dataTables_filter input {
+  background-color: #fef9e7;
+  color: #1e1b16;
+  border: 1px solid #f1c40f;
+}
+
+/* === File input path text fix === */
+input[type="file"] {
+  color: #1e1b16 !important;  /* dark text */
+  background-color: #f1c40f !important;  /* gold background */
+  border: 1px solid #f1c40f;
+}
+
+input[type="file"]::file-selector-button {
+  background-color: #6c5b3e;
+  color: #fff;
+  border: none;
+  padding: 4px 8px;
+  border-radius: 3px;
+  cursor: pointer;
+}
+
+/* === Fix file input field visibility === */
+input[type="file"] {
+  color: #1e1b16 !important;              /* black text inside the field */
+  background-color: #f1c40f !important;   /* gold field background */
+  border: 1px solid #f1c40f;
+}
+
+/* Chrome / Edge / Firefox "Browse..." button */
+input[type="file"]::file-selector-button {
+  background-color: #6c5b3e;
+  color: #ffffff;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 4px;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+/* Force height + padding for visibility */
+.shiny-input-container input[type="file"] {
+  height: 38px;
+  padding: 6px;
+}
+
+
+
+
+
+
+
+/* Target the div that holds the file name text */
+.form-control[readonly] {
+  background-color: #f1c40f !important;
+  color: #1e1b16 !important;
+  font-weight: bold;
+  border: 1px solid #f1c40f;
+}
