@@ -20,101 +20,83 @@ ui <- fluidPage(
   
   sidebarLayout(
     sidebarPanel(
-      fileInput("file", "Upload Methylation Data (CSV)", accept = ".csv"),
-      
-      selectInput("region", "Select Region:", choices = c("All", "Island", "Shore", "Shelf")),
-      uiOutput("condition_selector"),
-      
-      
-      h4("Differential Methylation"),
-      actionButton("run_de", "Run DE Analysis"),
-      
-      
-      h4("Pathway Analysis Options"),
-      radioButtons("de_direction", "Select Genes for Pathway Analysis:",
-                   choices = c("All" = "all",
-                               "Hypermethylated (Up)" = "up",
-                               "Hypomethylated (Down)" = "down"),
-                   selected = "all"),
-      selectInput("enrichr_db", "Select Enrichment Database:",
-                  choices = c("KEGG_2021_Human", "Reactome_2022", "GO_Biological_Process_2023"),
-                  selected = "KEGG_2021_Human"),
-      actionButton("run_pathway", "Run Pathway Analysis"),
-      
-      h4("Visualizations"),
-      actionButton("run_boxplot", "Draw Boxplot"),
-      actionButton("run_heatmap", "Draw Heatmap"),
-      actionButton("run_pca", "Run PCA"),
-      actionButton("run_volcano", "Run Volcano Plot"),
-      actionButton("run_umap", "Run UMAP"),
-      
-      actionButton("run_rf", "Run Random Forest"),
-      
-      
-      h4("Power Analysis"),
-      numericInput("power_effect", "Effect size (Cohen's d):", value = 0.5, min = 0.1, step = 0.1),
-      numericInput("power_alpha", "Significance level (α):", value = 0.05, min = 0.001, step = 0.005),
-      numericInput("power_power", "Desired power (1 - β):", value = 0.8, min = 0.1, max = 0.99, step = 0.05),
-      uiOutput("group_selector"),
-      actionButton("run_power", "Run Power Analysis"),
-      
-      h4("Download Results"),
-      downloadButton("download_de", "Download DE Results"),
-      downloadButton("download_pathway", "Download Pathway Results"),
-      downloadButton("download_power_table", "Download Power Table")
-      
-    ),
+  fileInput("file", "Upload Methylation Data (CSV)", accept = ".csv"),
+  
+  selectInput("region", "Select Region:", choices = c("All", "Island", "Shore", "Shelf")),
+  uiOutput("condition_selector"),
+
+  h4("Differential Methylation"),
+  actionButton("run_de", "Run DE Analysis"),
+  actionButton("run_volcano", "Run Volcano Plot"),
+
+  h4("Visualizations"),
+  actionButton("run_boxplot", "Draw Boxplot"),
+  actionButton("run_heatmap", "Draw Heatmap"),
+  actionButton("run_pca", "Run PCA"),
+  actionButton("run_umap", "Run UMAP"),
+
+  h4("Pathway Analysis Options"),
+  radioButtons("de_direction", "Select Genes for Pathway Analysis:",
+               choices = c("All" = "all", "Hypermethylated (Up)" = "up", "Hypomethylated (Down)" = "down"),
+               selected = "all"),
+  selectInput("enrichr_db", "Select Enrichment Database:",
+              choices = c("KEGG_2021_Human", "Reactome_2022", "GO_Biological_Process_2023"),
+              selected = "KEGG_2021_Human"),
+  actionButton("run_pathway", "Run Pathway Analysis"),
+
+  h4("Power Analysis"),
+  numericInput("power_effect", "Effect size (Cohen's d):", value = 0.5, min = 0.1, step = 0.1),
+  numericInput("power_alpha", "Significance level (α):", value = 0.05, min = 0.001, step = 0.005),
+  numericInput("power_power", "Desired power (1 - β):", value = 0.8, min = 0.1, max = 0.99, step = 0.05),
+  uiOutput("group_selector"),
+  actionButton("run_power", "Run Power Analysis"),
+
+  h4("Random Forest"),
+  actionButton("run_rf", "Run Random Forest"),
+
+  h4("Download Results"),
+  downloadButton("download_de", "Download DE Results"),
+  downloadButton("download_pathway", "Download Pathway Results"),
+  downloadButton("download_power_table", "Download Power Table")
+),
+
     
     mainPanel(
-      tabsetPanel(
-        tabPanel("DE_Results", DT::dataTableOutput("de_table")),
-        tabPanel("Volcano Plot", plotlyOutput("volcano_plot")),
-        tabPanel("PCA Plot", plotlyOutput("pca_plot")),
-        tabPanel("Boxplot", plotlyOutput("boxplot")),
-        tabPanel("Heatmap", plotlyOutput("heatmap")),
-        tabPanel("UMAP Plot", plotlyOutput("umap_plot")),
-        
-        
-        tabPanel("Pathway Analysis",
-                 tabsetPanel(
-                   tabPanel("Tabular Results", DT::dataTableOutput("enrichr_table")),
-                   tabPanel("Barplot", plotlyOutput("enrichr_barplot"))
-                 )
-        ),
-        tabPanel("Power Analysis",
-                 tabsetPanel(
-                   tabPanel("Tabular Results", DT::dataTableOutput("power_table")),
-                   tabPanel("Power Plot", plotlyOutput("power_plot"))
-                 )
-        ),
-        tabPanel("Random Forest",
-                 tabsetPanel(
-                   tabPanel("Prediction",
-                            DT::dataTableOutput("rf_pred_table"),
-                            downloadButton("download_rf_pred", "Download Prediction")
-                   ),
-                   tabPanel("Metrics",
-                            DT::dataTableOutput("rf_metrics_table"),
-                            downloadButton("download_rf_metrics", "Download Metrics")
-                   ),
-                   tabPanel("Feature Importance",
-                            DT::dataTableOutput("rf_importance_table"),
-                            downloadButton("download_rf_importance", "Download Importance")
-                   )
-                 )
-               
-                 
-        ),
-        tabPanel("README", uiOutput("readme_text"))
-        
-        
-        
-        )
-        
-        
-        )
-      )
-    )
+  tabsetPanel(
+    tabPanel("README", uiOutput("readme_text")),
+    tabPanel("DE_Results", DT::dataTableOutput("de_table")),
+    tabPanel("Volcano Plot", plotlyOutput("volcano_plot")),
+    
+    tabPanel("Boxplot", plotlyOutput("boxplot")),
+    tabPanel("Heatmap", plotlyOutput("heatmap")),
+    tabPanel("PCA Plot", plotlyOutput("pca_plot")),
+    tabPanel("UMAP Plot", plotlyOutput("umap_plot")),
+    
+    tabPanel("Pathway Analysis",
+             tabsetPanel(
+               tabPanel("Tabular Results", DT::dataTableOutput("enrichr_table")),
+               tabPanel("Barplot", plotlyOutput("enrichr_barplot"))
+             )),
+    
+    tabPanel("Power Analysis",
+             tabsetPanel(
+               tabPanel("Tabular Results", DT::dataTableOutput("power_table")),
+               tabPanel("Power Plot", plotlyOutput("power_plot"))
+             )),
+    
+    tabPanel("Random Forest",
+             tabsetPanel(
+               tabPanel("Prediction", DT::dataTableOutput("rf_pred_table"),
+                        downloadButton("download_rf_pred", "Download Prediction")),
+               tabPanel("Metrics", DT::dataTableOutput("rf_metrics_table"),
+                        downloadButton("download_rf_metrics", "Download Metrics")),
+               tabPanel("Feature Importance", DT::dataTableOutput("rf_importance_table"),
+                        downloadButton("download_rf_importance", "Download Importance"))
+             ))
+  )
+)
+
+  
   
 
 
