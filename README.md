@@ -173,6 +173,30 @@ If on WSL2 or an HPC cluster, use SSH port forwarding:
 
 ssh -L 3838:localhost:3838 user@hpc.cluster.edu
 
+
+ Run via SLURM (HPC-compatible)
+For automated deployment on SLURM clusters, use the provided submit_slurm.sh:
+in bash
+sbatch submit_slurm.sh
+
+This script:
+
+Requests resources (CPU, RAM, runtime)
+
+Executes the container using Rscript /app/start.R
+
+Starts the Shiny app inside the container
+
+Ensure your cluster allows binding to port 3838.
+Use SSH port forwarding from your local machine to access the app:
+
+ssh -L 3838:localhost:3838 user@hpc.cluster.edu
+
+Then open:
+
+http://localhost:3838
+
+
 📦 Files bundled in the container:
 app.R
 
