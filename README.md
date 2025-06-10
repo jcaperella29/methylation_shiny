@@ -1,6 +1,6 @@
 # DNA Methylation Shiny App
 
-> An interactive R Shiny application for DNA methylation analysis with full support for HPC deployment via Singularity/Apptainer.
+> An interactive R Shiny application for DNA methylation analysis with full support for HPC deployment via Singularity/Apptainer and SLURM.
 
 ---
 
