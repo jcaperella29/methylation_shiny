@@ -94,7 +94,7 @@ ui <- fluidPage(
                         downloadButton("download_rf_importance", "Download Importance"))
              ))
   )
-)
+)))
 
   
   
