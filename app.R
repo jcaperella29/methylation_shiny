@@ -111,6 +111,52 @@ server <- function(input, output) {
   rf_pred <- reactiveVal(NULL)
   rf_metrics <- reactiveVal(NULL)
   rf_importance <- reactiveVal(NULL)
+
+  # ---- Enrichr helpers: unify + barplot ----
+  fmt_enrich_for_table <- function(res) {
+    if (is.null(res) || nrow(res) == 0) return(NULL)
+    
+    # Make sure these columns exist
+    needed <- c("DB", "Term", "Overlap", "P.value", "Adjusted.P.value", "Genes")
+    missing <- setdiff(needed, colnames(res))
+    for (nm in missing) {
+      res[[nm]] <- NA
+    }
+    
+    df <- res[, needed, drop = FALSE]
+    df <- df[order(df$Adjusted.P.value, df$P.value), , drop = FALSE]
+    rownames(df) <- NULL
+    df
+  }
+
+  render_enrich_barplot <- function(df, db = NULL, top_n = 10) {
+    req(df, nrow(df) > 0)
+    
+    if (!is.null(db) && "DB" %in% colnames(df)) {
+      df <- df[df$DB == db, , drop = FALSE]
+    }
+    if (nrow(df) == 0) return(NULL)
+    
+    df <- df[order(df$Adjusted.P.value), , drop = FALSE]
+    df <- head(df, top_n)
+    df$Term <- factor(df$Term, levels = rev(df$Term))
+    
+    plot_ly(
+      df,
+      x = ~-log10(Adjusted.P.value),
+      y = ~Term,
+      type = "bar",
+      orientation = "h",
+      text = ~paste0("FDR: ", signif(Adjusted.P.value, 3),
+                     "<br>Genes: ", Genes)
+    ) %>%
+      layout(
+        title = paste("Top Enriched Pathways:", if (!is.null(db)) db else ""),
+        xaxis = list(title = "-log10(FDR)"),
+        yaxis = list(title = "")
+      )
+  }
+
   
   data <- reactive({
     req(input$file)
@@ -251,22 +297,19 @@ server <- function(input, output) {
     showNotification("Differential methylation analysis complete!", type = "message")
   })
   
-  # Reactive value to store enrichment results
-  enrichr_results <- reactiveVal(NULL)
-  
-  # Enrichment logic on button click
+ 
   observeEvent(input$run_pathway, {
     req(de_results())
     showNotification("Pathway analysis starting...", type = "message")
     
     # Filter DE genes based on FDR and direction
-    sig <- de_results() %>% filter(padj <= 0.05)
+    sig <- de_results() %>% dplyr::filter(padj <= 0.05)
     
     direction <- input$de_direction
     if (direction == "up") {
-      sig <- sig %>% filter(logFC > 0)
+      sig <- sig %>% dplyr::filter(logFC > 0)
     } else if (direction == "down") {
-      sig <- sig %>% filter(logFC < 0)
+      sig <- sig %>% dplyr::filter(logFC < 0)
     }
     
     if (nrow(sig) == 0) {
@@ -289,26 +332,42 @@ server <- function(input, output) {
       return()
     }
     
-    # Run Enrichr
+    # Run Enrichr on all three DBs, then unify
     library(enrichR)
     databases <- c("KEGG_2021_Human", "Reactome_2022", "GO_Biological_Process_2023")
-    result <- enrichr(sig_genes, databases)
+    raw_list <- enrichr(sig_genes, databases)
     
-    enrichr_results(result)
+    combined <- do.call(rbind, lapply(names(raw_list), function(db) {
+      df <- raw_list[[db]]
+      if (is.null(df) || nrow(df) == 0) return(NULL)
+      df$DB <- db
+      df
+    }))
+    
+    combined <- fmt_enrich_for_table(combined)
+    enrichr_results(combined)
+    
     showNotification("Pathway analysis completed!", type = "message")
   })
-  output$enrichr_table <- DT::renderDataTable({
+
+    output$enrichr_table <- DT::renderDataTable({
     req(enrichr_results())
+    df <- enrichr_results()
     db <- input$enrichr_db
-    if (!db %in% names(enrichr_results())) {
-      showNotification("Selected database has no results", type = "error")
+    
+    if ("DB" %in% colnames(df)) {
+      df <- df[df$DB == db, , drop = FALSE]
+    }
+    if (nrow(df) == 0) {
+      showNotification("Selected database has no results", type = "warning")
       return(NULL)
     }
     
-    DT::datatable(enrichr_results()[[db]], 
+    DT::datatable(df,
                   options = list(pageLength = 10),
                   rownames = FALSE)
   })
+
   output$de_table <- DT::renderDataTable({
     req(de_results())
     DT::datatable(de_results(), 
@@ -330,42 +389,28 @@ server <- function(input, output) {
     },
     content = function(file) {
       req(enrichr_results())
+      df <- enrichr_results()
       db <- input$enrichr_db
-      if (!db %in% names(enrichr_results())) {
-        showNotification("Selected pathway database not found.", type = "error")
+      
+      if ("DB" %in% colnames(df)) {
+        df <- df[df$DB == db, , drop = FALSE]
+      }
+      if (nrow(df) == 0) {
+        showNotification("Selected pathway database has no results.", type = "error")
+        write.csv(data.frame(), file, row.names = FALSE)
         return()
       }
-      write.csv(enrichr_results()[[db]], file, row.names = FALSE)
+      
+      write.csv(df, file, row.names = FALSE)
     }
   )
+
   output$enrichr_barplot <- renderPlotly({
     req(enrichr_results())
-    db <- input$enrichr_db
-    df <- enrichr_results()[[db]]
-    req(!is.null(df), nrow(df) > 0)
-    
-    # Take top 10 by adjusted p-value
-    df <- df[order(df$Adjusted.P.value), ]
-    top_df <- head(df, 10)
-    
-    # Ensure pathway names are ordered
-    top_df$Term <- factor(top_df$Term, levels = rev(top_df$Term))
-    
-    # Build plot
-    plot_ly(top_df,
-            x = ~-log10(Adjusted.P.value),
-            y = ~Term,
-            type = "bar",
-            orientation = "h",
-            text = ~paste("P-value:", signif(Adjusted.P.value, 3)),
-            marker = list(color = "steelblue")) %>%
-      layout(
-        title = paste("Top Enriched Pathways:", db),
-        xaxis = list(title = "-log10(Adjusted P-value)"),
-        yaxis = list(title = "")
-      )
+    df <- enrichr_results()
+    render_enrich_barplot(df, db = input$enrichr_db, top_n = 10)
   })
-  
+
   
   group_choices <- reactive({
     df <- data()
@@ -804,4 +849,5 @@ server <- function(input, output) {
 }
 
 shinyApp(ui = ui, server = server)
+
 
