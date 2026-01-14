@@ -112,6 +112,17 @@ server <- function(input, output) {
   rf_metrics <- reactiveVal(NULL)
   rf_importance <- reactiveVal(NULL)
 
+
+  # ---- Helper: assign group/condition from sample name by prefix ----
+assign_group <- function(sample_names, groups) {
+  # sample_names: character vector like c("Tumor1","Normal2")
+  # groups: character vector like c("Tumor","Normal")
+  sapply(as.character(sample_names), function(s) {
+    matched <- groups[sapply(groups, function(g) startsWith(s, g))]
+    if (length(matched) > 0) matched[1] else NA_character_
+  })
+}
+
   # ---- Enrichr helpers: unify + barplot ----
   fmt_enrich_for_table <- function(res) {
     if (is.null(res) || nrow(res) == 0) return(NULL)
@@ -165,15 +176,26 @@ server <- function(input, output) {
   })
   
   filtered_data <- reactive({
-    df <- data()
-    if (input$region != "All") {
-      df <- df[df$Region == input$region, ]
-    }
-    df_melt <- melt(df, id.vars = c("Gene", "Region"), variable.name = "Sample", value.name = "Methylation")
-    df_melt$Condition <- ifelse(grepl("Tumor", df_melt$Sample), "Tumor", "Normal")
-    df_melt <- df_melt[df_melt$Condition %in% input$condition, ]
-    df_melt
-  })
+  req(input$condition)   # IMPORTANT: since we use selected groups
+  df <- data()
+
+  if (input$region != "All") {
+    df <- df[df$Region == input$region, ]
+  }
+
+  df_melt <- melt(df,
+                  id.vars = c("Gene", "Region"),
+                  variable.name = "Sample",
+                  value.name = "Methylation")
+
+  # Use the SAME rule as everywhere else
+  df_melt$Condition <- assign_group(df_melt$Sample, input$condition)
+
+  # Keep only selected groups
+  df_melt <- df_melt[!is.na(df_melt$Condition) & df_melt$Condition %in% input$condition, ]
+  df_melt
+})
+
   output$boxplot <- renderPlotly({
     req(input$run_boxplot)
     req(input$condition)
@@ -808,6 +830,7 @@ server <- function(input, output) {
 }
 
 shinyApp(ui = ui, server = server)
+
 
 
 
