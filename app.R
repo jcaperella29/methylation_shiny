@@ -14,8 +14,8 @@ library(shiny)
 
 ui <- fluidPage(
   titlePanel("DNA Methylation Analysis"),
-  tags$head(
-    tags$link(rel = "stylesheet", type = "text/css", href = "style.css")
+  shiny::tags$head(
+    shiny::tags$link(rel = "stylesheet", type = "text/css", href = "style.css")
   ),
   
   sidebarLayout(
@@ -624,7 +624,7 @@ assign_group <- function(sample_names, groups) {
     meth_matrix <- meth_matrix[complete.cases(meth_matrix), , drop = FALSE]
     
     # Transpose: rows = samples, cols = probes
-    umap_result <- umap(t(meth_matrix), n_neighbors = 15, min_dist = 0.1, metric = "euclidean")
+    umap_result <- uwot::umap(t(meth_matrix), n_neighbors = 15, min_dist = 0.1, metric = "euclidean")
     
     umap_df <- as.data.frame(umap_result)
     colnames(umap_df) <- c("UMAP1", "UMAP2")
@@ -830,6 +830,7 @@ assign_group <- function(sample_names, groups) {
 }
 
 shinyApp(ui = ui, server = server)
+
 
 
 
