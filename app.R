@@ -580,49 +580,8 @@ server <- function(input, output) {
   })
   
   
-  output$pca_plot <- renderPlotly({
-    req(data())
-    req(input$condition)
-   
-    df <- data()
-    
-    # Extract only the selected group sample columns
-    sample_cols <- colnames(df)[!(colnames(df) %in% c("Gene", "Region"))]
-    selected_cols <- sample_cols[sapply(sample_cols, function(s) any(startsWith(s, input$condition)))]
-    req(length(selected_cols) > 1)
-    
-    meth_matrix <- df[, selected_cols, drop = FALSE]
-    meth_matrix <- apply(meth_matrix, 2, as.numeric)
-    rownames(meth_matrix) <- df$Gene
-    meth_matrix <- meth_matrix[complete.cases(meth_matrix), , drop = FALSE]
-    
-    # Transpose: PCA on samples (columns = probes)
-    pca <- prcomp(t(meth_matrix), scale. = TRUE)
-    
-    # Extract first 2 PCs
-    pca_df <- as.data.frame(pca$x[, 1:2])
-    pca_df$Sample <- rownames(pca_df)
-    pca_df$Group <- sapply(pca_df$Sample, function(s) {
-      matched <- input$condition[sapply(input$condition, function(g) startsWith(s, g))]
-      if (length(matched) > 0) matched[1] else NA
-    })
-    
-    plot_ly(
-      data = pca_df,
-      x = ~PC1,
-      y = ~PC2,
-      type = "scatter",
-      mode = "markers",
-      color = ~Group,
-      text = ~Sample,
-      marker = list(size = 10)
-    ) %>%
-      layout(
-        title = "PCA Plot of Samples",
-        xaxis = list(title = "PC1"),
-        yaxis = list(title = "PC2")
-      )
-  })
+  
+
   
   observeEvent(input$run_umap, {
     req(data())
@@ -849,5 +808,6 @@ server <- function(input, output) {
 }
 
 shinyApp(ui = ui, server = server)
+
 
 
